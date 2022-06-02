@@ -6,7 +6,8 @@ import ast
 #TODO torch regex isn't working in the first function
 
 '''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
-Returns a list of all of the (either Tensorflow or PyTorch) function calls found in the code.'''
+Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
+using a regular expression, and returns a list of them.'''
 def regex_extractor(python_file: str, api_name: str) -> list: #api_name is either 'tf' (for Tensorflow) or 'pt' (For PyTorch)
     list_of_funcs = []
 
@@ -33,6 +34,9 @@ def regex_extractor(python_file: str, api_name: str) -> list: #api_name is eithe
 #print(regex_extractor("test_tf.py", "tf"))
 #print(regex_extractor("test_pt.py", "pt"))
 
+'''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
+Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
+by examining the code's AST, and returns a list of them.'''
 def AST_extractor(python_file: str, api_name: str) -> list: #as in the above function, api_name is either tf (Tensorflow) or pt (PyTorch)
     
     retrieved_ast = open(python_file, "r")
@@ -42,7 +46,7 @@ def AST_extractor(python_file: str, api_name: str) -> list: #as in the above fun
     list_of_funcs = []
 
     #print(tree_string)
-    #how to represent and work with the AST???
+    #need to figure out how to represent and work with the AST
 
     if (api_name != "tf" and api_name != "pt"):
         raise ValueError("Invalid entry to function AST_extractor(). Must be either 'tf' (Tensorflow) or 'pt' (PyTorch)") 
