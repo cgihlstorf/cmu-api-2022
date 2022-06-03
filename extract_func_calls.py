@@ -31,12 +31,6 @@ def regex_extractor(python_file: str, api_name: str) -> list: #api_name is eithe
             list_of_funcs.append(line_list[0])
     
     return list_of_funcs
- 
-# for item in regex_extractor("test_tf.py", "tf"):
-#     print(item)
-
-# for item in regex_extractor("test_pt.py", "pt"):
-#     print(item)
 
 '''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
 Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
@@ -89,7 +83,14 @@ def AST_extractor(python_file: str, api_name: str) -> list: #as in the above fun
     return list_of_funcs
   
 
-#print results of functions
+#=====================================================Debugging=====================================================#
+
+# for item in regex_extractor("test_tf.py", "tf"):
+#     print(item)
+
+# for item in regex_extractor("test_pt.py", "pt"):
+#     print(item)
+
 for item in AST_extractor("test_tf.py", "tf"):
     print(item)
 
