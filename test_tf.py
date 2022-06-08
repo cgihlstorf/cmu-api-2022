@@ -1,4 +1,5 @@
 # from https://www.tensorflow.org/api_docs/python/tf/keras/Sequential
+import tensorflow as tf
 
 # Optionally, the first layer can receive an `input_shape` argument:
 model = tf.keras.Sequential()
