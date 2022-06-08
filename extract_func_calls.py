@@ -2,11 +2,9 @@ import re
 import ast
 
 #TODO make comments nicer
-#TODO still need to take into account variables (create a symbol table?)
+#TODO format parameters and keywords correctly
 #TODO torch regex isn't working in the first function
-#TODO get parameters 
 #TODO find more examples of tf/pt code --> save results in CSV file
-#TODO specify PyTorch or Tensorflow by import statement
 
 '''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
 Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
@@ -66,7 +64,7 @@ def AST_extractor(python_file: str) -> list:
                     break
                 formatted_func_list.append(element)
 
-            #params stuff here: 
+            #get function parameters:
             ast_args = "" 
             args_list = node.args
             for i in range (len(args_list)):
@@ -77,9 +75,15 @@ def AST_extractor(python_file: str) -> list:
                 else:
                     ast_args = ast_args + arg_string + ","
 
-
-            #keyword stuff here:
-            #TODO write this code
+            #get function keywords:
+            ast_keywords = "" 
+            keywords_list = node.keywords
+            for i in range (len(keywords_list)):
+                keyword_string = ast.dump(keywords_list[i], annotate_fields=False, include_attributes=False)
+                if i == len(keywords_list) - 2:
+                    ast_keywords = ast_keywords + keyword_string
+                else:
+                    ast_keywords = ast_keywords + keyword_string + ","
 
             #dots used to load functions and empty function parameters are represented using 'Load()'
             #Replace 'Load' with '.' or '()', depending on the context specified above, and add the element
@@ -88,7 +92,7 @@ def AST_extractor(python_file: str) -> list:
             for i in range (len(formatted_func_list)):
                 if formatted_func_list[i] == "Load":
                     if i == len(formatted_func_list) - 1: 
-                        func_as_string = func_as_string + "()" #add params here later
+                        func_as_string = func_as_string + "(" + ast_args + ast_keywords + ")" #add params and keywords here later
                     else:
                         func_as_string = func_as_string + "."
                 else:
@@ -98,6 +102,11 @@ def AST_extractor(python_file: str) -> list:
 
     return list_of_funcs
 
+
+'''Takes a Python AST and returns a list of all API references in imports 
+and all variable names for API functions from Assign expressions. This will be used
+in AST_extractor() to make sure that only functions that are part of imported APIs are 
+counted in its output'''
 def collect_valid_funcs(python_tree: ast) ->list :
     #TODO comment this function
     valid_funcs = []
