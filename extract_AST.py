@@ -1,8 +1,7 @@
 import re
 import ast
 
-#TODO make comments nicer
-#TODO format parameters and keywords correctly
+#TODO Figure out how to format keyword values
 
 '''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
 Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
@@ -24,56 +23,55 @@ def AST_extractor(python_file: str) -> list:
     return list_of_funcs
 
 
-'''Need documentation for this'''
+'''Takes in an AST function node and a list of valid function names to include in its output;
+returns a string representation of the function name, without parameters or keywords.'''
 def create_func_string(node: ast, valid_funcs: list) -> str:
-    ast_func_string = ast.dump(node.func, annotate_fields=False, include_attributes=False) #get string representation of AST function)
-    ast_func_string = ast_func_string.split("Name")[1] #clean up the string representation - remove references to types of AST nodes and AST formatting
+    ast_func_string = ast.dump(node.func, annotate_fields=False, include_attributes=False) #get string representation of AST function
+    ast_func_string = ast_func_string.split("Name")[1] #remove references to types of AST nodes and other AST formatting
     ast_func_list = ast_func_string.split(",")
-    formatted_func_list = [] #use to hold futher formatted elements of ast_func_list 
-    func_as_string = "" #this will be used in the final concatenation phase
+    formatted_func_list = [] #used to hold each newly formatted element of ast_func_list 
+    func_as_string = "" #our string to return
             
-    #clean up the formatting of each element in ast_func_list which may have AST formatting
+    #get rid of quotes, parens, and extra spaces that the previous clearnup didn't catch
     for i in range (len(ast_func_list)):
         element = ast_func_list[i]
-        #get rid of quotes, parens, and extra spaces from previous formatting
         element = element.replace("\'", "") 
         element = element.replace(")", "") 
         element = element.replace("(", "") 
         element = element.replace(" ", "") 
         element = element.replace("\"", "") 
-        if i == 0 and element not in valid_funcs:
+        if i == 0 and element not in valid_funcs: #don't include the function name if it isn't part of an imported API
             break
         formatted_func_list.append(element)
 
-    #dots used to load functions and empty function parameters are represented using 'Load()'
-    #Replace 'Load' with '.' or '()', depending on the context specified above, and add the element
-    #If element is not 'Load()', simply add it
-    #I still need to address the case for nonempty function parameters
+    #Both dots used to load functions and empty function parameters are represented using 'Load()'
+    #Replace 'Load' with '.' or '()', depending on which of the above it represents, and add the element
     for i in range (len(formatted_func_list)):
-        #why is this outputting empty strings...
         if formatted_func_list[i] == "Load":
             if i == len(formatted_func_list) - 1: 
                 func_as_string = func_as_string + "(" 
             else:
                 func_as_string = func_as_string + "."
-        else:
+        else: #If element is not 'Load()', append it to the output string as-is
             func_as_string = func_as_string + formatted_func_list[i]      
 
-    if func_as_string != "":
+    #for all functions from imported APIs, append string versions of all applicable parameters and keywords
+    if func_as_string != "": #ignore non-APi functions, which would still be represented as empty strings at this point
         param_string = get_param_string(node.args, valid_funcs)
         keywords_string = get_keywords_string(node)
         if param_string != "" and keywords_string != "":
-            func_as_string = func_as_string + param_string + ", " + keywords_string + ")" 
+            func_as_string = func_as_string + ")" #empty paremeters and keywords
         elif param_string != "" and keywords_string == "":
-            func_as_string = func_as_string + param_string + ")" #is including param_string redundant
-        elif param_string == "" and keywords_string != "":
             func_as_string = func_as_string + param_string + ")" 
-
+        elif param_string == "" and keywords_string != "":
+            #I still need to figure out how to format keyword values
+            func_as_string = func_as_string + keywords_string + ")" 
 
     return func_as_string
 
-'''Needs documentation'''
-def get_param_string(args: list, valid_funcs: list) ->str: #right now this only takes into account function parameter
+'''Returns a string representation of a function's parameters. Right now it only returns 
+representatons for function parameters or constant parameters.'''
+def get_param_string(args: list, valid_funcs: list) ->str: 
     for node in args:
         if isinstance(node, ast.Call):
             return create_func_string(node, valid_funcs)
@@ -81,22 +79,13 @@ def get_param_string(args: list, valid_funcs: list) ->str: #right now this only 
             return str(node.value)
     return ""
 
-'''Needs documentation'''
+'''Returns a string representation of any keywords parameters of a function and 
+an empty string if there are no keyword parameters.'''
+#Function is not quite done yet...I still need to account for more types of parateters (ex: tuples) if needed
 def get_keywords_string(node: ast) ->str:
-    # #get function keywords:
-    # ast_keywords = "" 
-    # keywords_list = node.keywords
-    # for i in range (len(keywords_list)):
-    #     print("Keyword:")
-    #     print(keywords_list[i].value) #seems to be constant; tuple...
-    #     keyword_string = keywords_list[i].arg + "=" #+ keywords_list[i].value.value #why 2 values? Explain this
-    #     if i == len(keywords_list) - 2: #decide whether or not to add a comma for more terms
-    #         ast_keywords = ast_keywords + keyword_string
-    #     else:
-    #         ast_keywords = ast_keywords + keyword_string + ","
     return_string = ""
     for keyword in node.keywords:
-        return_string = return_string + keyword.arg + "=" + str(keyword.value) #getting there...still need to account for tuples
+        return_string = return_string + keyword.arg + "=" + str(keyword.value) 
     return return_string
 
 '''Takes a Python AST and returns a list of all API references in imports 
@@ -105,7 +94,7 @@ in AST_extractor() to make sure that only functions that are part of imported AP
 counted in its output'''
 def collect_valid_funcs(python_tree: ast) ->list :
     valid_funcs = []
-    #trying to get rid of python functions...
+    #if a node is an import statement or assignment, store its name in a list for future reference
     for node in ast.walk(python_tree): #inspired by: https://greentreesnakes.readthedocs.io/en/latest/manipulating.html?highlight=visit#working-on-the-tree 
         if isinstance(node, ast.Import):
             for name in node.names:
@@ -119,7 +108,9 @@ def collect_valid_funcs(python_tree: ast) ->list :
                 target_string = ast.dump(target, annotate_fields=False, include_attributes=False)
                 formatted_target = target_string.split("Name")[1].split(",")[0]
                 valid_funcs.append(formatted_target)
-        #find examples of these instances below so you know how to format them correctly
+
+        #find examples of these instances below so you know how to format them correctly:
+
         # elif isinstance(node, ast.AnnAssign):
         #     print("AnnAssign:")
         #     print(ast.dump(node, annotate_fields=False, include_attributes=False))
@@ -128,6 +119,7 @@ def collect_valid_funcs(python_tree: ast) ->list :
 
     formatted_funcs = []
 
+    #remove any extra punctuation/formatting left around the function name
     for element in valid_funcs:
         new_element = element.replace("\'", "") 
         new_element = new_element.replace(")", "") 
@@ -138,9 +130,11 @@ def collect_valid_funcs(python_tree: ast) ->list :
   
     return formatted_funcs
 
-'''Need to comment this'''
+'''Takes in an alias object from an import statement and converts the 
+alias to a string'''
 def alias_to_string(alias : ast.alias):
     alias_name = ast.dump(alias, annotate_fields=False, include_attributes=False).split("alias")[1]
+    #if there are multiple names in the alias object (representing the original name and its alias), return only the alias 
     if len(alias_name.split(",")) > 1:
         alias_name = alias_name.split(",")[1]
     return alias_name

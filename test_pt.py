@@ -1,3 +1,5 @@
+#TODO compile a file of many more torch examples to test
+
 import torch
 
 #from https://pytorch.org/docs/stable/tensors.html

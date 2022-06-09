@@ -1,3 +1,5 @@
+#TODO compile a file of many more tf examples to test
+
 # from https://www.tensorflow.org/api_docs/python/tf/keras/Sequential
 import tensorflow as tf
 
