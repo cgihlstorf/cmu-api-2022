@@ -3,9 +3,7 @@ import ast
 
 #TODO Figure out how to format keyword values
 
-'''Takes a Python file and a two-letter code ('tf' (for Tensorflow) or 'pt' (For PyTorch)). 
-Searches for a list of all of the (either Tensorflow or PyTorch) function calls found in the code
-by examining the code's AST, and returns a list of them.'''
+'''Returns a list of all API function calls found within a file of Python code.'''
 def AST_extractor(python_file: str) -> list: 
     list_of_funcs = []
     retrieved_ast = open(python_file, "r")
@@ -59,13 +57,13 @@ def create_func_string(node: ast, valid_funcs: list) -> str:
     if func_as_string != "": #ignore non-APi functions, which would still be represented as empty strings at this point
         param_string = get_param_string(node.args, valid_funcs)
         keywords_string = get_keywords_string(node)
-        if param_string != "" and keywords_string != "":
+        if param_string != "": #and keywords_string != "":
             func_as_string = func_as_string + ")" #empty paremeters and keywords
-        elif param_string != "" and keywords_string == "":
-            func_as_string = func_as_string + param_string + ")" 
-        elif param_string == "" and keywords_string != "":
+        # elif param_string != "" and keywords_string == "":
+        #     func_as_string = func_as_string + param_string + ")" 
+        elif param_string == "": #and keywords_string != "":
             #I still need to figure out how to format keyword values
-            func_as_string = func_as_string + keywords_string + ")" 
+            func_as_string = func_as_string + ")" #not including keywords for now
 
     return func_as_string
 
