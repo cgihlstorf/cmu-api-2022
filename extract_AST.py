@@ -30,7 +30,7 @@ def create_func_string(node: ast, valid_funcs: list) -> str:
     formatted_func_list = [] #used to hold each newly formatted element of ast_func_list 
     func_as_string = "" #our string to return
             
-    #get rid of quotes, parens, and extra spaces that the previous clearnup didn't catch
+    #get rid of quotes, parens, and extra spaces that the previous cleanup didn't catch
     for i in range (len(ast_func_list)):
         element = ast_func_list[i]
         element = element.replace("\'", "") 
