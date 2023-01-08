@@ -1,6 +1,6 @@
 # cmu-api-2022
 
-Collection of files from several software engineering projects I was involved in at CMU during the summer of 2022.
+Collection of files from several projects I was involved in at CMU during the summer of 2022.
 
 Contains:
 1) Scripts to extract API functions from Python code and filter and extract Python files from a directory. Also includes test files for each script.
